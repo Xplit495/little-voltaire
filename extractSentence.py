@@ -1,129 +1,84 @@
 import time
 import random
+from logIn import logIn
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 
-def checkExercices(driver: webdriver.Chrome):
-    try:
-        driver.find_element(By.CLASS_NAME, 'understoodButton').click()
+def checkExercises(driver: webdriver.Chrome):
+    time.sleep(1)
+    logIn(driver)
+    while True:
         time.sleep(5)
-        checkExercices(driver)
-    except NoSuchElementException:
-        ...
-    try:
-        element = driver.find_element(By.CLASS_NAME, 'popupButton')
-        if element.is_displayed() and element.is_enabled():
-            element.click()
-    except NoSuchElementException:
-        ...
-    try:
-        driver.find_element(By.CLASS_NAME, 'intensiveLessonVideoTitle')
-        passPopUp(driver)
-    except NoSuchElementException:
-        isSpecial = False
-
         try:
-            elt = driver.find_element(By.CLASS_NAME, 'gwt-InlineHTML')
-            if elt.is_enabled() and elt.is_displayed():
-                isSpecial = True
-        except NoSuchElementException:
-            ...
-
-        if isSpecial:
-            print("pipi")
-            driver.find_element(By.CLASS_NAME, 'validateButton').click()
+            driver.find_element(By.CLASS_NAME, 'understoodButton').click()
             time.sleep(2)
+
+            popupButton = driver.find_element(By.CLASS_NAME, 'popupButton')
+            if popupButton.is_displayed() and popupButton.is_enabled():
+                popupButton.click()
+
+            driver.find_element(By.CLASS_NAME, 'intensiveLessonVideoTitle')
+            driver.find_element(By.CLASS_NAME, 'understoodButton').click()
+            handleRandomButtons(driver)
+
+            handleSpecialCase(driver)
+
+        except NoSuchElementException:
+            randomClick(driver, extractSentence(driver))
+            time.sleep(1)
             driver.find_element(By.CLASS_NAME, 'nextButton').click()
-            checkExercices(driver)
-        else:
-            sentenceArray = extractSentence(driver)
-            elementToClick = random.randint(0, len(sentenceArray))
-            randomClick(driver, sentenceArray, elementToClick)
+
+
+def handleSpecialCase(driver: webdriver.Chrome):
+    try:
+        specialElement = driver.find_element(By.CLASS_NAME, 'gwt-InlineHTML')
+        if specialElement.is_enabled() and specialElement.is_displayed():
+            driver.find_element(By.CLASS_NAME, 'validateButton').click()
+            driver.find_element(By.CLASS_NAME, 'nextButton').click()
+            checkExercises(driver)
+    except NoSuchElementException:
+        sentenceArray = extractSentence(driver)
+        randomClick(driver, sentenceArray)
 
 
 def extractSentence(driver: webdriver.Chrome):
-    time.sleep(3)
-    elements = driver.find_elements(By.CLASS_NAME, 'pointAndClickSpan')
+    time.sleep(1)
+    elements = driver.find_elements(By.CLASS_NAME, "pointAndClickSpan")
 
-    sentenceArray = []
-
-    for element in elements:
-        if element.text == "'":
-            ...
-        else:
-            sentenceArray.append(element.text)
-
-    return sentenceArray
+    return [element.text for element in elements if element.text != "'"]
 
 
-def passPopUp(driver: webdriver.Chrome):
-    time.sleep(3)
-
-    driver.find_element(By.CLASS_NAME, 'understoodButton').click()
-
-    time.sleep(2)
-
+def handleRandomButtons(driver: webdriver.Chrome):
     buttonOk = driver.find_elements(By.CLASS_NAME, 'buttonOk')
     buttonKo = driver.find_elements(By.CLASS_NAME, 'buttonKo')
 
     for i in range(3):
-        time.sleep(3)
-        randomChoose = random.randint(0, 1)
-        if randomChoose == 0:
+        time.sleep(2)
+        randomChoice = random.choice([0, 1])
+        if randomChoice == 0 and i < len(buttonOk):
             buttonOk[i].click()
-        else:
+        elif i < len(buttonKo):
             buttonKo[i].click()
-
-    time.sleep(2)
-
-    try:
-        driver.find_element(By.CLASS_NAME, 'exitButton').click()
-        time.sleep(2)
-        checkExercices(driver)
-    except NoSuchElementException:
-        element = driver.find_element(By.CLASS_NAME, 'showClueButton')
-        if element.is_displayed() and element.is_enabled():
-            checkExercices(driver)
-        else:
-            driver.find_element(By.CLASS_NAME, 'exitButton').click()
-            time.sleep(2)
-            checkExercices(driver)
+    return
 
 
-def randomClick(driver: webdriver.Chrome, sentenceArray, elementToClick):
-    time.sleep(6)
+def randomClick(driver: webdriver.Chrome, sentence):
 
-    if elementToClick == len(sentenceArray):
-        nextQuestionButton = driver.find_elements(By.CLASS_NAME, 'noMistakeButton')
-        time.sleep(2)
-        for element in nextQuestionButton:
-            if element.is_displayed() and element.is_enabled():
-                element.click()
-        time.sleep(2)
+    elementToClick = random.randint(0, len(sentence))
+
+    if elementToClick == len(sentence):
+        nextQuestionButtons = driver.find_elements(By.CLASS_NAME, 'noMistakeButton')
+        for button in nextQuestionButtons:
+            if button.is_displayed() and button.is_enabled():
+                button.click()
     else:
-        wordToClick = sentenceArray[elementToClick]
-        xpath = "//span[@class='pointAndClickSpan' and contains(text(), '" + str(wordToClick) + "')]"
-
-        print("Mot :" + str(wordToClick))
-        print("\nIndex :" + str(elementToClick) + "\nTableau :")
-        print(sentenceArray)
-        print("Xpath :" + xpath)
-
-        time.sleep(2)
-
+        wordToClick = sentence[elementToClick]
+        xpath = f"//span[@class='pointAndClickSpan' and contains(text(), '{wordToClick}')]"
+        italicXpath = f"//span[@class='pointAndClickSpan italic' and contains(text(), '{wordToClick}')]"
         try:
             driver.find_element(By.XPATH, xpath).click()
         except NoSuchElementException:
-            print("Element not found, continue")
-            time.sleep(2)
-            checkExercices(driver)
-
-        time.sleep(2)
-
-    driver.find_element(By.CLASS_NAME, 'nextButton').click()
-
-    time.sleep(2)
-
-    checkExercices(driver)
+            driver.find_element(By.XPATH, italicXpath).click()
+    return
