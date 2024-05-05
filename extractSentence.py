@@ -1,6 +1,6 @@
 import time
 import random
-from logIn import logIn
+from login import login
 from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 
 def checkExercises(driver: webdriver.Chrome):
     time.sleep(1)
-    logIn(driver)
+    login(driver)
     while True:
         time.sleep(5)
         try:

@@ -6,7 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
 
-def logIn(driver: webdriver.Chrome):
+def login(driver: webdriver.Chrome):
 
     usernameBox = WebDriverWait(driver, 10).until(
         ec.visibility_of_element_located((By.ID, 'user_pseudonym'))
