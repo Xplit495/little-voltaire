@@ -19,7 +19,7 @@ allowing it to increase hours without direct user engagement. Note that while it
 Follow these instructions to install the project on your local machine. This is intended for developers wishing to test and use the project.
 
 ```bash
-git clone https://github.com/Xplit495/little-voltaire
+git clone https://github.com/Xplit495/little-voltaire.git
 cd LittleVoltaire
 pip install -r requirements.txt
 ```

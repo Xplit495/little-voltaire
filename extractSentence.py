@@ -23,12 +23,8 @@ def checkExercises(driver: webdriver.Chrome):
             driver.find_element(By.CLASS_NAME, 'understoodButton').click()
             handleRandomButtons(driver)
 
-            handleSpecialCase(driver)
-
         except NoSuchElementException:
-            randomClick(driver, extractSentence(driver))
-            time.sleep(1)
-            driver.find_element(By.CLASS_NAME, 'nextButton').click()
+            handleSpecialCase(driver)
 
 
 def handleSpecialCase(driver: webdriver.Chrome):
@@ -37,10 +33,12 @@ def handleSpecialCase(driver: webdriver.Chrome):
         if specialElement.is_enabled() and specialElement.is_displayed():
             driver.find_element(By.CLASS_NAME, 'validateButton').click()
             driver.find_element(By.CLASS_NAME, 'nextButton').click()
-            checkExercises(driver)
+            return
     except NoSuchElementException:
-        sentenceArray = extractSentence(driver)
-        randomClick(driver, sentenceArray)
+        randomClick(driver, extractSentence(driver))
+        time.sleep(1)
+        driver.find_element(By.CLASS_NAME, 'nextButton').click()
+        return
 
 
 def extractSentence(driver: webdriver.Chrome):
@@ -76,9 +74,11 @@ def randomClick(driver: webdriver.Chrome, sentence):
     else:
         wordToClick = sentence[elementToClick]
         xpath = f"//span[@class='pointAndClickSpan' and contains(text(), '{wordToClick}')]"
-        italicXpath = f"//span[@class='pointAndClickSpan italic' and contains(text(), '{wordToClick}')]"
         try:
             driver.find_element(By.XPATH, xpath).click()
         except NoSuchElementException:
-            driver.find_element(By.XPATH, italicXpath).click()
+            nextQuestionButtons = driver.find_elements(By.CLASS_NAME, 'noMistakeButton')
+            for button in nextQuestionButtons:
+                if button.is_displayed() and button.is_enabled():
+                    button.click()
     return
